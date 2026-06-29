@@ -4,7 +4,7 @@ const { parseArgs, outputSuccess, requireArgs, runScript } = require("./shared/u
 
 async function main() {
   const args = parseArgs();
-  requireArgs(args, ["token"], "node scripts/verifySignature.js --did <did> --token <token>");
+  requireArgs(args, ["did", "token"], "node scripts/verifySignature.js --did <did> --token <token>");
 
   const { kms, challengeStorage } = await getInitializedRuntime();
 
