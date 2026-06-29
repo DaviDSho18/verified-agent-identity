@@ -102,7 +102,10 @@ class KeysFileStorage extends FileStorage {
   async get(args) {
     const keys = await this.readFile();
     const entry = keys.find((entry) => entry.alias === args.alias);
-    return entry ? entry.privateKeyHex : "";
+    if (!entry) {
+      throw new Error(`Key not found for alias: ${args.alias}`);
+    }
+    return entry.privateKeyHex;
   }
 
   async list() {
