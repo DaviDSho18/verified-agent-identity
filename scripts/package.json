@@ -3,7 +3,8 @@
   "version": "0.0.2",
   "description": "Billions OpenClaw verification skill",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest",
+    "test:coverage": "jest --coverage"
   },
   "keywords": [
     "identity",
@@ -19,5 +20,8 @@
     "@noble/curves": "^1.9.2",
     "ethers": "^6.13.4",
     "uuid": "^11.0.3"
+  },
+  "devDependencies": {
+    "jest": "^30.4.2"
   }
 }
