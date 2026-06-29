@@ -7,11 +7,13 @@ const {
 const { getInitializedRuntime } = require("./shared/bootstrap");
 const {
   parseArgs,
-  formatError,
   outputSuccess,
   createDidDocument,
   getAuthResponseMessage,
   buildEthereumAddressFromDid,
+  resolveDidEntry,
+  requireArgs,
+  runScript,
 } = require("./shared/utils");
 const { buildJsonAttestation } = require("./shared/attestation");
 
@@ -48,45 +50,21 @@ async function signChallenge(challenge, entry, kms) {
 }
 
 async function main() {
-  try {
-    const args = parseArgs();
+  const args = parseArgs();
+  requireArgs(args, ["challenge"], "node scripts/signChallenge.js --challenge <challenge> [--did <did>]");
 
-    if (!args.challenge) {
-      console.error("Error: --challenge are required");
-      console.error(
-        "Usage: node scripts/signChallenge.js --challenge <challenge> [--did <did>]",
-      );
-      process.exit(1);
-    }
+  const { kms, didsStorage } = await getInitializedRuntime();
 
-    const { kms, didsStorage } = await getInitializedRuntime();
+  const entry = await resolveDidEntry(didsStorage, args.did);
 
-    // Get DID entry - either specific DID or default
-    const entry = args.did
-      ? await didsStorage.find(args.did)
-      : await didsStorage.getDefault();
+  const challenge = JSON.parse(args.challenge);
+  const tokenString = await signChallenge(challenge, entry, kms);
 
-    if (!entry) {
-      const errorMsg = args.did
-        ? `No DID ${args.did} found`
-        : "No default DID found";
-      console.error(errorMsg);
-      process.exit(1);
-    }
-
-    const challenge = JSON.parse(args.challenge);
-    const tokenString = await signChallenge(challenge, entry, kms);
-
-    outputSuccess({ success: true, data: { token: tokenString } });
-  } catch (error) {
-    console.error(formatError(error));
-    process.exit(1);
-  }
+  outputSuccess({ success: true, data: { token: tokenString } });
 }
 
 module.exports = { signChallenge };
 
-// Run main if this script is executed directly (not imported as a module)
 if (require.main === module) {
-  main();
+  runScript(main);
 }
