@@ -8,7 +8,7 @@ class FileStorage {
 
   async ensureDirectory() {
     const dir = path.dirname(this.filePath);
-    await fs.mkdir(dir, { recursive: true });
+    await fs.mkdir(dir, { recursive: true, mode: 0o700 });
   }
 
   async readFile() {
@@ -27,7 +27,7 @@ class FileStorage {
     await this.ensureDirectory();
     const json = JSON.stringify(data, null, 2);
     const tempPath = `${this.filePath}.tmp`;
-    await fs.writeFile(tempPath, json, "utf-8");
+    await fs.writeFile(tempPath, json, { encoding: "utf-8", mode: 0o600 });
     await fs.rename(tempPath, this.filePath);
   }
 }

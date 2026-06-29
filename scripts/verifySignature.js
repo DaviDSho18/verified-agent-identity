@@ -2,44 +2,58 @@ const { JWSPacker, byteEncoder } = require("@0xpolygonid/js-sdk");
 const { getInitializedRuntime } = require("./shared/bootstrap");
 const { parseArgs, formatError, outputSuccess } = require("./shared/utils");
 
+const DID_PATTERN = /^did:iden3:[a-zA-Z0-9:]+$/;
+
 async function main() {
   try {
     const args = parseArgs();
 
-    if (!args.token) {
-      console.error("Error: --token parameters is required");
+    if (!args.token || !args.did) {
+      console.error("Error: --did and --token parameters are required");
       console.error(
         "Usage: node scripts/verifySignature.js --did <did> --token <token>",
       );
       process.exit(1);
     }
 
+    if (!DID_PATTERN.test(args.did)) {
+      console.error("Error: Invalid DID format");
+      process.exit(1);
+    }
+
     const { kms, challengeStorage } = await getInitializedRuntime();
 
-    // Get the stored challenge
-    const challenge = await challengeStorage.getChallenge(args.did);
+    const challenge = await challengeStorage.consumeChallenge(args.did);
     if (!challenge) {
-      console.error(`Error: No challenge found for DID: ${args.did}`);
+      console.error(`Error: No valid challenge found for DID: ${args.did}`);
       console.error("Generate a challenge first with generateChallenge.js");
       process.exit(1);
     }
 
-    // Create DID resolver that fetches from remote resolver
     const resolveDIDDocument = {
       resolve: async (did) => {
+        if (!DID_PATTERN.test(did)) {
+          throw new Error("Invalid DID format for resolution");
+        }
         const resp = await fetch(
-          `https://resolver.privado.id/1.0/identifiers/${did}`,
+          `https://resolver.privado.id/1.0/identifiers/${encodeURIComponent(did)}`,
         );
+        if (!resp.ok) {
+          throw new Error(
+            `DID resolution failed with status ${resp.status}`,
+          );
+        }
         const didResolutionRes = await resp.json();
+        if (!didResolutionRes || !didResolutionRes.didDocument) {
+          throw new Error("DID resolution returned invalid response");
+        }
         return didResolutionRes;
       },
     };
 
-    // Create JWS packer and unpack token
     const jws = new JWSPacker(kms, resolveDIDDocument);
     const basicMessage = await jws.unpack(byteEncoder.encode(args.token));
 
-    // Verify the sender
     if (basicMessage.from !== args.did) {
       console.error(
         `Error: Invalid from: expected from ${args.did}, got ${basicMessage.from}`,
@@ -47,12 +61,9 @@ async function main() {
       process.exit(1);
     }
 
-    // Verify the challenge matches
     const payload = basicMessage.body;
     if (payload.message !== challenge) {
-      console.error(
-        `Error: Invalid signature: challenge mismatch ${payload.message} !== ${challenge}`,
-      );
+      console.error("Error: Invalid signature: challenge mismatch");
       process.exit(1);
     }
 

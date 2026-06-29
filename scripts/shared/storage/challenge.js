@@ -1,5 +1,7 @@
 const { FileStorage } = require("./base");
 
+const CHALLENGE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
 class ChallengeFileStorage extends FileStorage {
   constructor(filename = "challenges.json") {
     super(filename);
@@ -7,15 +9,13 @@ class ChallengeFileStorage extends FileStorage {
 
   async save(did, challenge) {
     const entries = await this.readFile();
-    const created_at = new Date();
+    const created_at = new Date().toISOString();
 
     const index = entries.findIndex((entry) => entry.did === did);
 
     if (index >= 0) {
-      // Update existing entry
       entries[index] = { did, challenge, created_at };
     } else {
-      // Add new entry
       entries.push({ did, challenge, created_at });
     }
 
@@ -29,7 +29,23 @@ class ChallengeFileStorage extends FileStorage {
 
   async getChallenge(did) {
     const entry = await this.find(did);
-    return entry?.challenge;
+    if (!entry) {
+      return undefined;
+    }
+    const age = Date.now() - new Date(entry.created_at).getTime();
+    if (age > CHALLENGE_TTL_MS) {
+      await this.delete(did);
+      return undefined;
+    }
+    return entry.challenge;
+  }
+
+  async consumeChallenge(did) {
+    const challenge = await this.getChallenge(did);
+    if (challenge) {
+      await this.delete(did);
+    }
+    return challenge;
   }
 
   async list() {

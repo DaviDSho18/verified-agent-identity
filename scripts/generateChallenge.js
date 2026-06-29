@@ -1,4 +1,4 @@
-const { randomInt } = require("crypto");
+const { randomBytes } = require("crypto");
 const { getInitializedRuntime } = require("./shared/bootstrap");
 const { parseArgs, formatError, outputSuccess } = require("./shared/utils");
 
@@ -14,8 +14,7 @@ async function main() {
 
     const { challengeStorage } = await getInitializedRuntime();
 
-    // Generate random challenge
-    const challenge = randomInt(0, 10000000000).toString();
+    const challenge = randomBytes(32).toString("hex");
 
     // Save challenge to storage
     await challengeStorage.save(args.did, challenge);
