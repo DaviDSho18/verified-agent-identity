@@ -20,9 +20,18 @@ async function main() {
       revocationOpts,
     } = await getInitializedRuntime();
 
-    // Use provided key or generate a new one
     let privateKeyHex = args.key;
-    if (!privateKeyHex) {
+    if (privateKeyHex) {
+      const stripped = privateKeyHex.startsWith("0x")
+        ? privateKeyHex.slice(2)
+        : privateKeyHex;
+      if (!/^[0-9a-fA-F]{64}$/.test(stripped)) {
+        console.error(
+          "Error: --key must be a 32-byte hex string (64 hex characters, with optional 0x prefix)",
+        );
+        process.exit(1);
+      }
+    } else {
       privateKeyHex = new SigningKey(Wallet.createRandom().privateKey)
         .privateKey;
     }
