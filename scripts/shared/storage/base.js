@@ -14,7 +14,13 @@ class FileStorage {
   async readFile() {
     try {
       const data = await fs.readFile(this.filePath, "utf-8");
-      return JSON.parse(data);
+      try {
+        return JSON.parse(data);
+      } catch (parseError) {
+        throw new Error(
+          `Failed to parse ${this.filePath}: ${parseError.message}`,
+        );
+      }
     } catch (error) {
       if (error.code === "ENOENT") {
         return [];

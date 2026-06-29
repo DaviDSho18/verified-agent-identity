@@ -82,12 +82,31 @@ async function createAuthRequestMessage(jws, recipientDid) {
   });
 
   if (shortenerResponse.status !== 201) {
+    let body;
+    try {
+      body = await shortenerResponse.text();
+    } catch {
+      body = "(unable to read response body)";
+    }
     throw new Error(
-      `URL shortener failed with status ${shortenerResponse.status}`,
+      `URL shortener failed with status ${shortenerResponse.status}: ${body}`,
     );
   }
 
-  const { url } = await shortenerResponse.json();
+  let responseBody;
+  try {
+    responseBody = await shortenerResponse.json();
+  } catch (err) {
+    throw new Error(
+      `URL shortener returned invalid JSON response: ${err.message}`,
+    );
+  }
+  const { url } = responseBody;
+  if (!url) {
+    throw new Error(
+      "URL shortener response missing 'url' field",
+    );
+  }
 
   return `${walletAddress}#request_uri=${url}`;
 }
@@ -133,7 +152,18 @@ async function main() {
       process.exit(1);
     }
 
-    const challenge = JSON.parse(args.challenge);
+    let challenge;
+    try {
+      challenge = JSON.parse(args.challenge);
+    } catch (err) {
+      console.error(
+        JSON.stringify({
+          success: false,
+          error: `--challenge value is not valid JSON: ${err.message}`,
+        }),
+      );
+      process.exit(1);
+    }
     const url = await createPairing(challenge, args.did);
 
     outputSuccess({

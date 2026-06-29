@@ -71,9 +71,10 @@ function decryptKey(encryptedPayload, masterKeyString) {
       decipher.update(ciphertext),
       decipher.final(),
     ]).toString("utf8");
-  } catch {
+  } catch (err) {
     throw new Error(
       "kms.json decryption failed: wrong BILLIONS_NETWORK_MASTER_KMS_KEY or file has been tampered with",
+      { cause: err },
     );
   }
 }
