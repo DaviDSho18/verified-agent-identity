@@ -1,39 +1,24 @@
 const { getInitializedRuntime } = require("./shared/bootstrap");
 const {
   parseArgs,
-  formatError,
   outputSuccess,
   createDidDocument,
+  resolveDidEntry,
+  runScript,
 } = require("./shared/utils");
 
 async function main() {
-  try {
-    const args = parseArgs();
-    const { didsStorage } = await getInitializedRuntime();
+  const args = parseArgs();
+  const { didsStorage } = await getInitializedRuntime();
 
-    // Get DID entry - either specific DID or default
-    const entry = args.did
-      ? await didsStorage.find(args.did)
-      : await didsStorage.getDefault();
+  const entry = await resolveDidEntry(didsStorage, args.did);
 
-    if (!entry) {
-      const errorMsg = args.did
-        ? `No DID ${args.did} found`
-        : "No default DID found. Create one with createNewEthereumIdentity.js";
-      console.error(errorMsg);
-      process.exit(1);
-    }
+  const didDocument = createDidDocument(entry.did, entry.publicKeyHex);
 
-    const didDocument = createDidDocument(entry.did, entry.publicKeyHex);
-
-    outputSuccess({
-      didDocument,
-      did: entry.did,
-    });
-  } catch (error) {
-    console.error(formatError(error));
-    process.exit(1);
-  }
+  outputSuccess({
+    didDocument,
+    did: entry.did,
+  });
 }
 
-main();
+runScript(main);

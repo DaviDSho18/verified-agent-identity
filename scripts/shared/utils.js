@@ -116,6 +116,49 @@ function codeFormating(data) {
   return `\\\`\\\`\\\`${data}\\\`\\\`\\\``;
 }
 
+/**
+ * Resolves a DID entry from storage — looks up by DID if provided,
+ * otherwise returns the default. Throws if not found.
+ */
+async function resolveDidEntry(didsStorage, didOverride) {
+  const entry = didOverride
+    ? await didsStorage.find(didOverride)
+    : await didsStorage.getDefault();
+
+  if (!entry) {
+    const errorMsg = didOverride
+      ? `No DID ${didOverride} found`
+      : "No default DID found";
+    throw new Error(errorMsg);
+  }
+
+  return entry;
+}
+
+/**
+ * Validates that all required keys are present in args.
+ * Exits with usage message if any are missing.
+ */
+function requireArgs(args, required, usage) {
+  for (const key of required) {
+    if (!args[key]) {
+      console.error(`Error: --${key} parameter is required`);
+      console.error(`Usage: ${usage}`);
+      process.exit(1);
+    }
+  }
+}
+
+/**
+ * Wraps an async script entry point with standard error handling.
+ */
+function runScript(fn) {
+  fn().catch((error) => {
+    console.error(formatError(error));
+    process.exit(1);
+  });
+}
+
 module.exports = {
   normalizeKey,
   addHexPrefix,
@@ -128,4 +171,7 @@ module.exports = {
   buildEthereumAddressFromDid,
   urlFormating,
   codeFormating,
+  resolveDidEntry,
+  requireArgs,
+  runScript,
 };
