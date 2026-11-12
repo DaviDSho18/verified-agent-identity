@@ -4,13 +4,7 @@ const { parseArgs, formatError, outputSuccess } = require("./shared/utils");
 
 async function main() {
   try {
-    const args = parseArgs();
-
-    if (!args.did) {
-      console.error("Error: --did parameter is required");
-      console.error("Usage: node scripts/generateChallenge.js --did <did>");
-      process.exit(1);
-    }
+    const args = parseArgs({ options: ["did"], required: ["did"] });
 
     const { challengeStorage } = await getInitializedRuntime();
 

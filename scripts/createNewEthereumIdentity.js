@@ -11,7 +11,7 @@ const {
 
 async function main() {
   try {
-    const args = parseArgs();
+    const args = parseArgs({ options: ["key"] });
     const {
       kms,
       identityWallet,

@@ -8,7 +8,7 @@ const {
 
 async function main() {
   try {
-    const args = parseArgs();
+    const args = parseArgs({ options: ["did"] });
     const { didsStorage } = await getInitializedRuntime();
 
     // Get DID entry - either specific DID or default

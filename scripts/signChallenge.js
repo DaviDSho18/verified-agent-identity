@@ -49,15 +49,10 @@ async function signChallenge(challenge, entry, kms) {
 
 async function main() {
   try {
-    const args = parseArgs();
-
-    if (!args.challenge) {
-      console.error("Error: --challenge are required");
-      console.error(
-        "Usage: node scripts/signChallenge.js --challenge <challenge> [--did <did>]",
-      );
-      process.exit(1);
-    }
+    const args = parseArgs({
+      options: ["challenge", "did"],
+      required: ["challenge"],
+    });
 
     const { kms, didsStorage } = await getInitializedRuntime();
 

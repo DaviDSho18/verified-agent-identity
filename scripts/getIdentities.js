@@ -1,8 +1,9 @@
 const { getInitializedRuntime } = require("./shared/bootstrap");
-const { formatError, outputSuccess } = require("./shared/utils");
+const { parseArgs, formatError, outputSuccess } = require("./shared/utils");
 
 async function main() {
   try {
+    parseArgs();
     const { didsStorage } = await getInitializedRuntime();
 
     const identities = await didsStorage.list();
