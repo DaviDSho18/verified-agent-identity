@@ -56,6 +56,16 @@ This skill enables AI agents to create, manage, link, prove and verify ownership
 
    This prints the verification URL to the console. Open it in your browser to complete the identity linking process.
 
+## Command-line help
+
+Every script accepts `--help` (or `-h`) to show its arguments without creating an identity, opening identity storage, or sending a request:
+
+```bash
+node scripts/createNewEthereumIdentity.js --help
+```
+
+Options require non-empty values; unknown options and positional arguments fail with usage guidance. Both `--did <did>` and `--did=<did>` are supported. Quote JSON challenges as shown above so the shell passes them as a single value.
+
 ## Features
 
 - **Identity Creation**: Generate new DIDs with random or existing Ethereum private keys

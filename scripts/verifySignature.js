@@ -4,15 +4,10 @@ const { parseArgs, formatError, outputSuccess } = require("./shared/utils");
 
 async function main() {
   try {
-    const args = parseArgs();
-
-    if (!args.token) {
-      console.error("Error: --token parameters is required");
-      console.error(
-        "Usage: node scripts/verifySignature.js --did <did> --token <token>",
-      );
-      process.exit(1);
-    }
+    const args = parseArgs({
+      options: ["did", "token"],
+      required: ["did", "token"],
+    });
 
     const { kms, challengeStorage } = await getInitializedRuntime();
 

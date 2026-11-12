@@ -1,3 +1,4 @@
+const { parseArgs } = require("./cli");
 const { bytesToHex, keyPath } = require("@0xpolygonid/js-sdk");
 const { DID, Id } = require("@iden3/js-iden3-core");
 const { v7: uuid } = require("uuid");
@@ -71,23 +72,6 @@ function getAuthResponseMessage(did, challenge) {
       scope: [],
     },
   };
-}
-
-/**
- * Parses command line arguments into an object
- * Example: --did abc --key 123 => { did: 'abc', key: '123' }
- */
-function parseArgs() {
-  const args = {};
-  for (let i = 2; i < process.argv.length; i++) {
-    if (process.argv[i].startsWith("--")) {
-      const key = process.argv[i].slice(2);
-      const value = process.argv[i + 1];
-      args[key] = value;
-      i++;
-    }
-  }
-  return args;
 }
 
 /**

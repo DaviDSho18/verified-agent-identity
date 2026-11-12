@@ -120,18 +120,10 @@ async function createPairing(challenge, didOverride) {
 
 async function main() {
   try {
-    const args = parseArgs();
-
-    if (!args.challenge) {
-      console.error(
-        JSON.stringify({
-          success: false,
-          error:
-            "Invalid arguments. Usage: node linkHumanToAgent.js --challenge <json> [--did <did>]",
-        }),
-      );
-      process.exit(1);
-    }
+    const args = parseArgs({
+      options: ["challenge", "did"],
+      required: ["challenge"],
+    });
 
     const challenge = JSON.parse(args.challenge);
     const url = await createPairing(challenge, args.did);
